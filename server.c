@@ -14,7 +14,9 @@ int main(int argc, char const *argv[]){
     struct sockaddr_in address; 
     int addrlen = sizeof(address); 
 
-    char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!"; 
+
+    //String pointer, last portion is the body, what is being outputted
+    char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHellos world!"; 
 
 
     // Create Socket file descriptor 
