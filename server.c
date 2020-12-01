@@ -16,14 +16,18 @@ int main(int argc, char const *argv[]){
     int serverfd, new_socket; long valread; 
     struct sockaddr_in address; 
     int addrlen = sizeof(address); 
-
-    int conn; 
-    char message[100] = {0};  
+    char message[100] = {0}; 
 
 
     //String pointer, last portion is the body, what is being outputted
     char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHellos world!"; 
-    //char *message1 = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\n"; 
+    char *message2; 
+    //strcat(message2, "POST /voluer/receiver.php HTTP/1.1\n");
+    //strcat(message2, "Host: localhost\n"); 
+    //strcat(message2, "Connection: close\n");
+    //strcat(message2, "Content-Type: text/plain\n"); 
+    //strcat(message2, "Content-Lenth: 100\n"); 
+
 
     // Create Socket file descriptor 
     if ((serverfd = socket(AF_INET, SOCK_STREAM, 0)) == 0){
@@ -53,12 +57,14 @@ int main(int argc, char const *argv[]){
     while((new_socket = accept(serverfd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) > 0){
         int pid; 
         if((pid = fork()) == 0){
-            while(recv(new_socket, message, 100, 0) >0){
-                printf("Message Received: %s\n", message); 
+            while(recv(new_socket, message, sizeof(message), 0) >0){
+                printf("Message Received: %s\n", message);
+                sprintf(message2, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 100\n\n"); 
+                strcat(message2, message); 
+                //strcat(message2, message); 
                 printf("PID: %i\n",pid); 
                 //valread = read(new_socket, message, 30000); 
-                //message1 = appendCharToCharArray(message1, message); 
-                write(new_socket, hello, strlen(hello)); 
+                write(new_socket, message2, strlen(message2)); 
                 //break; 
             }
             //close(new_socket); 
