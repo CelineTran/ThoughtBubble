@@ -55,10 +55,10 @@ int main(int argc, char const *argv[]){
         if((pid = fork()) == 0){
             while(recv(new_socket, message, 100, 0) >0){
                 printf("Message Received: %s\n", message); 
-                printf("PID: %i",pid); 
+                printf("PID: %i\n",pid); 
                 //valread = read(new_socket, message, 30000); 
                 //message1 = appendCharToCharArray(message1, message); 
-                write(new_socket, message, strlen(message)); 
+                write(new_socket, hello, strlen(hello)); 
                 //break; 
             }
             //close(new_socket); 
