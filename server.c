@@ -42,7 +42,7 @@ int main(int argc, char const *argv[]){
         perror("Error in binding"); 
         exit(EXIT_FAILURE);
     }
-
+    
     //Listen for Socket 
     // wait for incoming connection 
     if(listen(serverfd, 10) < 0){
@@ -55,7 +55,7 @@ int main(int argc, char const *argv[]){
         if((pid = fork()) == 0){
             while(recv(new_socket, message, 100, 0) >0){
                 printf("Message Received: %s\n", message); 
-                printf(pid); 
+                printf("PID: %i",pid); 
                 //valread = read(new_socket, message, 30000); 
                 //message1 = appendCharToCharArray(message1, message); 
                 write(new_socket, message, strlen(message)); 
