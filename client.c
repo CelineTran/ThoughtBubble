@@ -16,6 +16,7 @@ int main(int argc, char const *argv[]){
     struct sockaddr_in serv_addr; 
     char *hello = "Hello from client"; 
     char buffer[1024] = {0}; 
+    char message[100] = ""; 
     
 
     if((sock = socket(AF_INET, SOCK_STREAM, 0)) <0){
@@ -40,11 +41,21 @@ int main(int argc, char const *argv[]){
         return -1; 
     }
 
-    //Send Message 
-    send(sock, hello, strlen(hello), 0);
+/*     send(sock, hello, strlen(hello), 0);
     printf("Hello message sent\n"); 
     valread = read(sock, buffer, 1024); 
-    printf("%s\n", buffer);
+    printf("%s\n", buffer); */
+
+     while(1){
+        //Send Message 
+        printf("Enter a message: "); 
+        fgets(message, 100, stdin); 
+        send(sock, message, strlen(message), 0);
+        printf("Message sent\n"); 
+        
+        valread = read(sock, buffer, 1024); 
+        printf("%s\n", buffer);
+    } 
     
     return 0; 
 }
