@@ -131,7 +131,8 @@ void *connection_handler(void *socket_destination){
     char **command; 
 
     //Send some messages to the client
-    message = "Greetings! I am your connection handler\n";
+    message = "You are connected to the Thought Bubble server\nClient Commands:" + 
+	    "\nget open <file name>\nget files\npost new <file name>\npost edit <original file name>\n";
     write(sock , message , strlen(message));
      
     //Receive a message from client
