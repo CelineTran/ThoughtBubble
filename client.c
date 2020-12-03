@@ -60,13 +60,14 @@ int getFile(int argc, char **argv){
 		return(1); 
 	}
 	if(targetFile == -1){
-		printf("\n Error opening file %s errno = %d\n", "temp.txt", errno); 
-		return(1); 
+	    printf("\n Error opening file %s errno = %d\n", "temp.txt", errno); 
+	 	return(1); 
 	}
 
     while((readStatus = read(srcFile, buff, BUFFER_SIZE)) > 0){
 		//temp variable to store status from write function
 		writeStatus = write(targetFile, buff, readStatus); 
+        printf("File saved to temp.text"); 
 		//if return status from read and write functions are not equal, print error
 		//message
 		if(writeStatus != readStatus)
@@ -117,7 +118,10 @@ int postEdit(int argc, char **argv){
 
 int postFile(int argc, char **argv){
     FILE *fptr; 
-    char text[2048]; 
+
+    //char *parsedInput; 
+    //parsedInput = strtok(argv[0], ".");
+    //strcat(parsedInput, ".txt");  
 
     fptr = fopen(argv[0], "w"); 
     
