@@ -14,9 +14,9 @@ int main(int argc, char const *argv[]){
     int sock = 0; 
     long valread; 
     struct sockaddr_in serv_addr; 
-    char *hello = "Hello from client"; 
-    char buffer[1024] = {0}; 
-    char message[100] = ""; 
+    //char *hello = "Hello from client"; 
+    char buffer[30000]; 
+    char message[2000]; 
     
 
     if((sock = socket(AF_INET, SOCK_STREAM, 0)) <0){
@@ -41,20 +41,19 @@ int main(int argc, char const *argv[]){
         return -1; 
     }
 
-/*     send(sock, hello, strlen(hello), 0);
-    printf("Hello message sent\n"); 
-    valread = read(sock, buffer, 1024); 
-    printf("%s\n", buffer); */
+    puts("------------Connected to Server!!-----------\n");
 
-     while(1){
-        //Send Message 
-        printf("Enter a message: "); 
-        fgets(message, 100, stdin); 
-        send(sock, message, strlen(message), 0);
-        printf("Message sent\n"); 
-        
-        valread = read(sock, buffer, 1024); 
+    while( (valread = read(sock, buffer, 30000)) > 0){
         printf("%s\n", buffer);
+
+        //Send Message 
+        //printf("Enter a message: "); 
+        fgets(message, 2000, stdin); 
+        send(sock, message, strlen(message), 0);
+        printf("Message sent\n\n"); 
+
+        memset(buffer, 0, 30000);
+        memset(message, 0, 2000);
     } 
     
     return 0; 
