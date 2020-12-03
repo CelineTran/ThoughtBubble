@@ -18,29 +18,36 @@
 
 void *connection_handler(void *); 
 
-int getDirectory(int argc, char**argv){
-    //directory data type, to store the path of the directory
-    DIR* dirPath;
-	//data structure for directory entries
-    struct dirent* dirEntry;
-
-	//if opendir function returns as failed, then print error and exit
-    if(!(dirPath=opendir(argv[1])) ) {
-        printf("opendir error\n");
-        exit(1);
-    }
-    
-	//while loop to read directory and breaks when it has reached the end of path
-    while(1) {
-        dirEntry=readdir(dirPath);
-        if(!dirEntry)
-            break;
-		    //print path
-        printf("%s \n", dirEntry->d_name);
-
-    }
+//function called to parse the user's input to identify specific command
+//and subsequent arguments
+char **get_input(char *input){
+  // initialize pointer to pointer by allocating //block of memory on the heap
+  char **command = malloc(8* sizeof(char *));
   
-  return 0;
+  //will identify a space " " as the separator key between commands and 
+	//arguments
+  char *separator = " "; 
+  char *parsedInput; 
+	//used for the index of command array
+  int index = 0; 
+
+  //strtok function breaks input string into multiple parts
+  //separator signals where to break
+  parsedInput = strtok(input, separator); 
+
+	
+  while(parsedInput != NULL){
+    // Iterate through the tokens with index and subsequent increments
+    command[index] = parsedInput; 
+    index++; 
+    
+    //empty parsed
+    parsedInput = strtok(NULL, separator); 
+  }
+
+  // Set final index of command to null in order to terminate
+  command[index] = NULL; 
+  return command; 
 }
 
 int main(int argc, char const *argv[]){
@@ -116,7 +123,10 @@ void *connection_handler(void *socket_destination){
     //printf("%s\n", buffer); 
 
     int read_size; 
-    char *message, client_message[4096]; 
+    char *message, *instruction, client_message[4096]; 
+    char returnData[2048]; 
+
+    char **command; 
 
     //Send some messages to the client
     message = "Greetings! I am your connection handler\n";
@@ -128,38 +138,30 @@ void *connection_handler(void *socket_destination){
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 4096 , 0)) > 0 )
     {
-        char get[3] = "get";
-        char post[4] = "post"; 
-        for(int i = 0, j = 0; i < strlen(client_message); ++i){
-            if(client_message[i] == get[j]){
-                ++j; 
-                if(j == 3){
-                    char *p[2] = {"ls", "."}; 
-                    getDirectory(2, p);
-                    printf("GET command!\n"); 
-                }
-            }
-            else if(client_message[i] == post[j]){
-                ++j; 
-                if(j == 4){
-                    printf("POST command!\n"); 
-                }
-            }
-            else{
-                j -= i; 
-                j = 0; 
-            }
+        command = get_input(client_message); 
+        if(strcmp(command[0], "get") == 0){
+            printf("GET command!\n"); 
         }
+        else if(strcmp(command[0], "post") == 0){
+            printf("POST command! \n"); 
+        }
+        else{
+            instruction = "enter help"; 
+            write(sock, instruction, strlen(instruction)); 
+        }
+
         //end of string marker
 		client_message[read_size] = '\0';
+
+        printf("Message Received: %s\n", client_message); 
 		
 		//Send the message back to client
         write(sock , client_message , strlen(client_message));
 
-        printf("Message Received: %s\n", client_message); 
 		
 		//clear the message buffer
 		memset(client_message, 0, 4096);
+        free(command); 
     }
 
     close(sock); 

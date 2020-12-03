@@ -7,8 +7,90 @@
 #include <netinet/in.h> 
 #include <string.h> 
 #include <arpa/inet.h> 
+#include <dirent.h> 
 
 #define PORT 8080 
+
+
+//function called to parse the user's input to identify specific command
+//and subsequent arguments
+char **get_input(char *input){
+  // initialize pointer to pointer by allocating //block of memory on the heap
+  char **command = malloc(8* sizeof(char *));
+  
+  //will identify a space " " as the separator key between commands and 
+	//arguments
+  char *separator = " "; 
+  char *parsedInput; 
+	//used for the index of command array
+  int index = 0; 
+
+  //strtok function breaks input string into multiple parts
+  //separator signals where to break
+  parsedInput = strtok(input, separator); 
+
+	
+  while(parsedInput != NULL){
+    // Iterate through the tokens with index and subsequent increments
+    command[index] = parsedInput; 
+    index++; 
+    
+    //empty parsed
+    parsedInput = strtok(NULL, separator); 
+  }
+
+  // Set final index of command to null in order to terminate
+  command[index] = NULL; 
+  return command; 
+}
+
+int getFile(int argc, char **argv){
+    FILE *fptr; 
+    int num; 
+
+    fptr = fopen(argv[0], "r+"); 
+    
+    if(fptr == NULL){
+        perror("Error opening file!"); 
+        //exit(EXIT_FAILURE); 
+    }
+
+    printf("Enther num: "); 
+    scanf("%d", &num); 
+
+    fprintf(fptr, "%d", num); 
+    fclose(fptr);
+
+    return 0; 
+}
+
+char *getDirectory(int argc, char**argv){
+    //directory data type, to store the path of the directory
+    DIR* dirPath;
+	//data structure for directory entries
+    struct dirent* dirEntry;
+    char returnDir[2048] = {'\0'}; 
+
+	//if opendir function returns as failed, then print error and exit
+    if(!(dirPath=opendir(argv[1])) ) {
+        printf("opendir error\n");
+        exit(1);
+    }
+    
+	//while loop to read directory and breaks when it has reached the end of path
+    while(1) {
+        dirEntry=readdir(dirPath);
+        if(!dirEntry)
+            break;
+		    //print path
+        printf("%s \n", dirEntry->d_name);
+        //strcat(returnDir, dirEntry->d_name); 
+        //strcat(returnDir, "\n"); 
+
+    }
+  
+  return returnDir;
+}
 
 int main(int argc, char const *argv[]){
     int sock = 0; 
@@ -16,7 +98,7 @@ int main(int argc, char const *argv[]){
     struct sockaddr_in serv_addr; 
     //char *hello = "Hello from client"; 
     char buffer[30000]; 
-    char message[2000]; 
+    char message[2048]; 
     
 
     if((sock = socket(AF_INET, SOCK_STREAM, 0)) <0){
@@ -43,14 +125,43 @@ int main(int argc, char const *argv[]){
 
     puts("------------Connected to Server!!-----------\n");
 
+    char *instruction; 
+
     while( (valread = read(sock, buffer, 30000)) > 0){
         printf("%s\n", buffer);
 
         //Send Message 
         //printf("Enter a message: "); 
-        fgets(message, 2000, stdin); 
+        fgets(message, 2048, stdin); 
         send(sock, message, strlen(message), 0);
         printf("Message sent\n\n"); 
+
+        char **command; 
+    
+        command = get_input(message); 
+        if(strcmp(command[0], "get") == 0){
+            if(!command[1]){
+                instruction = "Please enter a command after 'get' "; 
+                write(sock, instruction, strlen(instruction)); 
+            }
+            else if(command[1]){
+                char *p[2] = {"ls", "."}; 
+                getDirectory(2, p);
+            }
+            /*else if(command[1]){
+                printf("Opening file\n"); 
+                char *p[1] = {command[1]}; 
+                getFile(1,p); 
+            }*/
+            printf("GET command!\n"); 
+        }
+        else if(strcmp(command[1], "post") == 0){
+            printf("POST command! \n"); 
+        }
+        else{
+            instruction = "enter help"; 
+            write(sock, instruction, strlen(instruction)); 
+        }
 
         memset(buffer, 0, 30000);
         memset(message, 0, 2000);
