@@ -87,10 +87,12 @@ int main(int argc, char const *argv[]){
         perror("Error in listening"); 
         exit(EXIT_FAILURE); 
     }
+
     pthread_t tid; 
 
+    printf("\n---------Server Started----------\n\n"); 
+
     while(1){
-        printf("\n---------Server Started----------\n\n"); 
         if((new_socket = accept(serverfd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0){
             perror("Error in accpet"); 
             exit(EXIT_FAILURE); 
@@ -103,7 +105,7 @@ int main(int argc, char const *argv[]){
             exit(EXIT_FAILURE); 
         }
 
-        pthread_join(tid, NULL); 
+        //pthread_join(tid, NULL); 
 
         puts("Handler assigned!"); 
     }   
@@ -132,12 +134,15 @@ void *connection_handler(void *socket_destination){
     message = "Greetings! I am your connection handler\n";
     write(sock , message , strlen(message));
      
-    message = "Now type something and i shall repeat what you type \n";
-    write(sock , message , strlen(message));
-     
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 4096 , 0)) > 0 )
     {
+
+        //end of string marker
+		client_message[read_size] = '\0';
+
+        printf("Message Received: %s\n", client_message); 
+
         command = get_input(client_message); 
         if(strcmp(command[0], "get") == 0){
             printf("GET command!\n"); 
@@ -150,13 +155,9 @@ void *connection_handler(void *socket_destination){
             write(sock, instruction, strlen(instruction)); 
         }
 
-        //end of string marker
-		client_message[read_size] = '\0';
-
-        printf("Message Received: %s\n", client_message); 
-		
 		//Send the message back to client
-        write(sock , client_message , strlen(client_message));
+        message = "Success \n"; 
+        write(sock , message , strlen(message));
 
 		
 		//clear the message buffer

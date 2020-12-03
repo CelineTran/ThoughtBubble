@@ -8,8 +8,11 @@
 #include <string.h> 
 #include <arpa/inet.h> 
 #include <dirent.h> 
+#include <fcntl.h>
+#include <errno.h> 
 
 #define PORT 8080 
+#define BUFFER_SIZE 1024 
 
 
 //function called to parse the user's input to identify specific command
@@ -45,8 +48,74 @@ char **get_input(char *input){
 }
 
 int getFile(int argc, char **argv){
+
+    char *buff[BUFFER_SIZE]; 
+    int srcFile, targetFile, readStatus, writeStatus; 
+
+    srcFile = open(argv[0], O_RDONLY); 
+    targetFile = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR );
+
+    if(srcFile == -1){
+	    printf("\nError opening file %s errno = %d\n", argv[0], errno); 
+		return(1); 
+	}
+	if(targetFile == -1){
+		printf("\n Error opening file %s errno = %d\n", "temp.txt", errno); 
+		return(1); 
+	}
+
+    while((readStatus = read(srcFile, buff, BUFFER_SIZE)) > 0){
+		//temp variable to store status from write function
+		writeStatus = write(targetFile, buff, readStatus); 
+		//if return status from read and write functions are not equal, print error
+		//message
+		if(writeStatus != readStatus)
+			printf("\n Error in writing data to %s\n", "temp.txt"); 
+	}
+
+    close(srcFile); 
+    close(targetFile); 
+
+    return 0; 
+
+}
+
+int postEdit(int argc, char **argv){
+
+    char *buff[BUFFER_SIZE]; 
+    int srcFile, targetFile, readStatus, writeStatus; 
+
+    srcFile = open(argv[0], O_RDONLY); 
+    targetFile = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR );
+
+    if(srcFile == -1){
+	    printf("\nError opening file %s errno = %d\n", argv[0], errno); 
+		return(1); 
+	}
+	if(targetFile == -1){
+		printf("\n Error opening file %s errno = %d\n", argv[1], errno); 
+		return(1); 
+	}
+
+    while((readStatus = read(srcFile, buff, BUFFER_SIZE)) > 0){
+		//temp variable to store status from write function
+		writeStatus = write(targetFile, buff, readStatus); 
+		//if return status from read and write functions are not equal, print error
+		//message
+		if(writeStatus != readStatus)
+			printf("\n Error in writing data to %s\n", argv[1]); 
+	}
+
+    close(srcFile); 
+    close(targetFile); 
+
+    return 0; 
+
+}
+
+int postFile(int argc, char **argv){
     FILE *fptr; 
-    int num; 
+    char text[2048]; 
 
     //FILE targetfile = "temp.txt"; 
 
@@ -57,10 +126,10 @@ int getFile(int argc, char **argv){
         //exit(EXIT_FAILURE); 
     }
 
-    printf("Enther num: "); 
-    scanf("%d", &num); 
+    printf("Enter text: "); 
+    scanf("%s", &text[0]); 
 
-    fprintf(fptr, "%d", num); 
+    fprintf(fptr, "%s", text); 
     fclose(fptr);
 
     return 0; 
@@ -157,7 +226,21 @@ int main(int argc, char const *argv[]){
             }
             printf("\n"); 
         }
-        else if(strcmp(command[1], "post") == 0){
+        else if(strcmp(command[0], "post") == 0){
+            if(!command[1]){
+                instruction = "Please enter a command after 'post' "; 
+                write(sock, instruction, strlen(instruction)); 
+            }
+            else if(strcmp(command[1], "new") == 0){
+                char *p[1] = {command[2]}; 
+                postFile(1,p); 
+            }
+            else if(strcmp(command[1], "edit") == 0){
+                char *p[2] = {"temp.txt", command[2]}; 
+                postEdit(2,p); 
+            }
+            printf("\n"); 
+
             printf("POST command! \n"); 
         }
         else{
