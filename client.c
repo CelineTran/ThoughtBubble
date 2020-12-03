@@ -48,7 +48,9 @@ int getFile(int argc, char **argv){
     FILE *fptr; 
     int num; 
 
-    fptr = fopen(argv[0], "r+"); 
+    //FILE targetfile = "temp.txt"; 
+
+    fptr = fopen(argv[0], "w"); 
     
     if(fptr == NULL){
         perror("Error opening file!"); 
@@ -144,16 +146,16 @@ int main(int argc, char const *argv[]){
                 instruction = "Please enter a command after 'get' "; 
                 write(sock, instruction, strlen(instruction)); 
             }
+            else if(strcmp(command[1], "open") == 0){
+                printf("Opening file\n"); 
+                char *p[1] = {command[2]}; 
+                getFile(1,p); 
+            }
             else if(command[1]){
                 char *p[2] = {"ls", "."}; 
                 getDirectory(2, p);
             }
-            /*else if(command[1]){
-                printf("Opening file\n"); 
-                char *p[1] = {command[1]}; 
-                getFile(1,p); 
-            }*/
-            printf("GET command!\n"); 
+            printf("\n"); 
         }
         else if(strcmp(command[1], "post") == 0){
             printf("POST command! \n"); 
