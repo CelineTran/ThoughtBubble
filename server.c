@@ -8,6 +8,8 @@
 #include <string.h>
 #include <pthread.h> 
 #include <dirent.h> 
+#include <fcntl.h>
+#include <errno.h> 
 
 #define PORT 8080
 
@@ -49,6 +51,124 @@ char **get_input(char *input){
   command[index] = NULL; 
   return command; 
 }
+
+char *getFile(int argc, char **argv){
+
+    char *buff[2048]; 
+    char *output = "File saved to temp.txt\n"; 
+
+    int srcFile, targetFile, readStatus, writeStatus; 
+
+    srcFile = open(argv[0], O_RDONLY); 
+    targetFile = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR );
+
+    if(srcFile == -1){
+	    printf("\nError opening file %s errno = %d\n", argv[0], errno); 
+		//return(1); 
+	}
+	if(targetFile == -1){
+	    printf("\n Error opening file %s errno = %d\n", "temp.txt", errno); 
+	 	//return(1); 
+	}
+
+    while((readStatus = read(srcFile, buff, 2048)) > 0){
+		//temp variable to store status from write function
+		writeStatus = write(targetFile, buff, readStatus); 
+		//if return status from read and write functions are not equal, print error
+		//message
+		if(writeStatus != readStatus)
+			printf("\n Error in writing data to %s\n", "temp.txt"); 
+	}
+
+    close(srcFile); 
+    close(targetFile); 
+
+    return output; 
+
+}
+
+int postEdit(int argc, char **argv){
+
+    char *buff[2048]; 
+    int srcFile, targetFile, readStatus, writeStatus; 
+
+    srcFile = open(argv[0], O_RDONLY); 
+    targetFile = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR );
+
+    if(srcFile == -1){
+	    printf("\nError opening file %s errno = %d\n", argv[0], errno); 
+		return(1); 
+	}
+	if(targetFile == -1){
+		printf("\n Error opening file %s errno = %d\n", argv[1], errno); 
+		return(1); 
+	}
+
+    while((readStatus = read(srcFile, buff, 2048)) > 0){
+		//temp variable to store status from write function
+		writeStatus = write(targetFile, buff, readStatus); 
+		//if return status from read and write functions are not equal, print error
+		//message
+		if(writeStatus != readStatus)
+			printf("\n Error in writing data to %s\n", argv[1]); 
+	}
+
+    remove(argv[0]); 
+
+    //close(srcFile); 
+    close(targetFile); 
+
+    return 0; 
+
+}
+
+int postFile(int argc, char **argv){
+    FILE *fptr; 
+
+    //char *parsedInput; 
+    //parsedInput = strtok(argv[0], ".");
+    //strcat(parsedInput, ".txt");  
+
+    fptr = fopen(argv[0], "w"); 
+    
+    if(fptr == NULL){
+        perror("Error opening file!"); 
+        //exit(EXIT_FAILURE); 
+    }
+
+    fclose(fptr);
+
+    return 0; 
+}
+
+char *getDirectory(int argc, char**argv){
+    //directory data type, to store the path of the directory
+    DIR* dirPath;
+	//data structure for directory entries
+    struct dirent* dirEntry;
+    char *returnDir; 
+
+	//if opendir function returns as failed, then print error and exit
+    if(!(dirPath=opendir(argv[1])) ) {
+        printf("opendir error\n");
+        exit(1);
+    }
+    
+	//while loop to read directory and breaks when it has reached the end of path
+    while(1) {
+        dirEntry=readdir(dirPath);
+        if(!dirEntry)
+            break;
+		    //print path
+        //printf("%s \n", dirEntry->d_name);
+        strcat(returnDir, dirEntry->d_name); 
+        strcat(returnDir, "\n"); 
+
+    }
+  
+  return returnDir;
+}
+
 
 int main(int argc, char const *argv[]){
     int serverfd, new_socket; long valread; 
@@ -117,17 +237,9 @@ void *connection_handler(void *socket_destination){
     
     //Get socket descriptor 
     int sock = *(int*)socket_destination; 
-    //char buffer[4096]; 
-    //bzero(buffer, 4096); 
-
-    //read(sock, buffer, sizeof(buffer)); 
-
-    //printf("%s\n", buffer); 
-
     int read_size; 
     char *message, *instruction, client_message[4096]; 
     char returnData[2048]; 
-
     char **command; 
 
     //Send some messages to the client
@@ -141,31 +253,67 @@ void *connection_handler(void *socket_destination){
         //end of string marker
 		client_message[read_size] = '\0';
 
-        printf("Message Received: %s\n", client_message); 
+        printf("Message Received: %s", client_message); 
 
+        char **command; 
+    
         command = get_input(client_message); 
         if(strcmp(command[0], "get") == 0){
-            printf("GET command!\n"); 
+            printf("GET request\n"); 
+            if(!command[1]){
+                instruction = "Please enter a command after 'get' "; 
+                write(sock, instruction, strlen(instruction)); 
+            }
+            else if(strcmp(command[1], "open") == 0){
+                printf("Opening file\n"); 
+                char *p[1] = {command[2]};
+                //getFile(&sock, 1, p);  
+                strcat(returnData, getFile(1,p));
+                write(sock, returnData, strlen(returnData));  
+            }
+            else if(command[1]){
+                char *p[2] = {"ls", "."}; 
+                strcat(returnData, getDirectory(2, p));
+                write(sock, returnData, strlen(returnData)); 
+            }
+            printf("\n"); 
         }
         else if(strcmp(command[0], "post") == 0){
-            printf("POST command! \n"); 
+            printf("POST request\n"); 
+
+            if(!command[1]){
+                instruction = "Please enter a command after 'post' "; 
+                write(sock, instruction, strlen(instruction)); 
+            }
+            else if(strcmp(command[1], "new") == 0){
+                char *p[1] = {command[2]}; 
+                postFile(1,p); 
+            }
+            else if(strcmp(command[1], "edit") == 0){
+                char *p[2] = {"temp.txt", command[2]}; 
+                postEdit(2,p); 
+            }
+            printf("\n"); 
+
         }
         else{
             instruction = "enter help"; 
-            write(sock, instruction, strlen(instruction)); 
+            printf("Help"); 
+            //write(sock, instruction, strlen(instruction)); 
         }
 
 		//Send the message back to client
-        message = "Success \n"; 
+        message = "\nSuccess \n"; 
         write(sock , message , strlen(message));
 
 		
 		//clear the message buffer
 		memset(client_message, 0, 4096);
-        free(command); 
+        memset(returnData, 0, 2048); 
+        //free(command); 
     }
 
-    close(sock); 
+    
      
     if(read_size == 0)
     {
@@ -174,8 +322,10 @@ void *connection_handler(void *socket_destination){
     }
     else if(read_size == -1)
     {
-        perror("recv failed");
+        puts("Client disconnected");
     }
+
+    close(sock); 
          
     return 0;
 
