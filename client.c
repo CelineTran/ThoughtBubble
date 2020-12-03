@@ -106,7 +106,9 @@ int postEdit(int argc, char **argv){
 			printf("\n Error in writing data to %s\n", argv[1]); 
 	}
 
-    close(srcFile); 
+    remove(argv[0]); 
+
+    //close(srcFile); 
     close(targetFile); 
 
     return 0; 
@@ -117,8 +119,6 @@ int postFile(int argc, char **argv){
     FILE *fptr; 
     char text[2048]; 
 
-    //FILE targetfile = "temp.txt"; 
-
     fptr = fopen(argv[0], "w"); 
     
     if(fptr == NULL){
@@ -126,10 +126,6 @@ int postFile(int argc, char **argv){
         //exit(EXIT_FAILURE); 
     }
 
-    printf("Enter text: "); 
-    scanf("%s", &text[0]); 
-
-    fprintf(fptr, "%s", text); 
     fclose(fptr);
 
     return 0; 
@@ -245,7 +241,8 @@ int main(int argc, char const *argv[]){
         }
         else{
             instruction = "enter help"; 
-            write(sock, instruction, strlen(instruction)); 
+            printf("Help"); 
+            //write(sock, instruction, strlen(instruction)); 
         }
 
         memset(buffer, 0, 30000);
