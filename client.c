@@ -7,13 +7,10 @@
 #include <netinet/in.h> 
 #include <string.h> 
 #include <arpa/inet.h> 
-#include <dirent.h> 
-#include <fcntl.h>
-#include <errno.h> 
+
 
 #define PORT 8080 
-#define BUFFER_SIZE 1024 
-
+//default PORT to connect to
 
 int main(int argc, char const *argv[]){
     int sock = 0; 
