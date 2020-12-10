@@ -12,11 +12,8 @@
 #include <errno.h> 
 
 #define PORT 8080
+//default PORT connection
 
-
-//char* appendCharToCharArray(char* array, char a); 
-
-//pthread_mutex_t lock = PTHREAD_MUTEX_INTIALIZER; 
 
 void *connection_handler(void *); 
 
@@ -52,6 +49,7 @@ char **get_input(char *input){
   return command; 
 }
 
+//getFile opens source file, copies data into a newly create text file called "temp.txt" 
 char *getFile(int argc, char **argv){
 
     char *buff[2048]; 
@@ -59,50 +57,68 @@ char *getFile(int argc, char **argv){
 
     int srcFile, targetFile, readStatus, writeStatus; 
 
+    //open source file as read only and return value to srcFile based on success
     srcFile = open(argv[0], O_RDONLY); 
-    targetFile = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR );
 
+     //create and open target file with following permissions
+     //write-only, created file, truncated, read-user, write-user
+     // default target file is temp.txt
+    targetFile = open("temp.txt", O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR );
+	
+	
+    //if srcFile contains failed status, print error message 
     if(srcFile == -1){
 	    printf("\nError opening file %s errno = %d\n", argv[0], errno); 
-		//return(1); 
-	}
-	if(targetFile == -1){
-	    printf("\n Error opening file %s errno = %d\n", "temp.txt", errno); 
-	 	//return(1); 
-	}
+    }
+    //if targetFile contains failed status, print error message
+    if(targetFile == -1){
+	   printf("\n Error opening file %s errno = %d\n", "temp.txt", errno); 
+    }
 
+    //while loop as long as nbread is > 0, continue reading srcFile
     while((readStatus = read(srcFile, buff, 2048)) > 0){
 		//temp variable to store status from write function
 		writeStatus = write(targetFile, buff, readStatus); 
+	    
 		//if return status from read and write functions are not equal, print error
 		//message
 		if(writeStatus != readStatus)
 			printf("\n Error in writing data to %s\n", "temp.txt"); 
 	}
 
+    // close out of both our source and target files
     close(srcFile); 
     close(targetFile); 
 
+    //outputs the success message to the client
     return output; 
 
 }
 
+//postEdit opens the default source file of "temp.txt" and copies it to the desired source file
+// also deletes the "temp.txt" file
 int postEdit(int argc, char **argv){
 
     char *buff[2048]; 
     int srcFile, targetFile, readStatus, writeStatus; 
 
+    //open source file as read only and return value to srcFile based on success
+    //default source file is "temp.txt"
     srcFile = open(argv[0], O_RDONLY); 
+
+    //create and open target file with following permissions
+     //write-only, created file, truncated, read-user, write-user
     targetFile = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC , S_IRUSR | S_IWUSR );
 
+    //if srcFile contains failed status, print error message 
     if(srcFile == -1){
 	    printf("\nError opening file %s errno = %d\n", argv[0], errno); 
-		return(1); 
-	}
-	if(targetFile == -1){
-		printf("\n Error opening file %s errno = %d\n", argv[1], errno); 
-		return(1); 
-	}
+    }
+
+    //if targetFile contains failed status, print error message
+    if(targetFile == -1){
+	printf("\n Error opening file %s errno = %d\n", argv[1], errno); 
+    }
 
     while((readStatus = read(srcFile, buff, 2048)) > 0){
 		//temp variable to store status from write function
@@ -112,16 +128,18 @@ int postEdit(int argc, char **argv){
 		if(writeStatus != readStatus)
 			printf("\n Error in writing data to %s\n", argv[1]); 
 	}
-
+    
+    // removes/deletes the "temp.txt" file
     remove(argv[0]); 
 
-    //close(srcFile); 
+    //close target file
     close(targetFile); 
 
     return 0; 
 
 }
 
+//postFile creates a new text file based on inputted name
 int postFile(int argc, char **argv){
     FILE *fptr; 
 
@@ -129,7 +147,7 @@ int postFile(int argc, char **argv){
     //parsedInput = strtok(argv[0], ".");
     //strcat(parsedInput, ".txt");  
 
-    fptr = fopen(argv[0], "w"); 
+    fptr = fopen(argv[0], "w"); //creates file with writing permissions
     
     if(fptr == NULL){
         perror("Error opening file!"); 
@@ -141,6 +159,7 @@ int postFile(int argc, char **argv){
     return 0; 
 }
 
+//this function lists the contents of the present working directory
 char *getDirectory(int argc, char**argv){
     //directory data type, to store the path of the directory
     DIR* dirPath;
@@ -166,10 +185,10 @@ char *getDirectory(int argc, char**argv){
 
     }
   
-  return returnDir;
+  return returnDir; // returns the directory in a string format
 }
 
-
+//main method to create the socket
 int main(int argc, char const *argv[]){
     int serverfd, new_socket; long valread; 
     struct sockaddr_in address; 
@@ -212,6 +231,7 @@ int main(int argc, char const *argv[]){
 
     printf("\n---------Server Started----------\n\n"); 
 
+    //keep the socket open 
     while(1){
         if((new_socket = accept(serverfd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0){
             perror("Error in accpet"); 
@@ -220,6 +240,7 @@ int main(int argc, char const *argv[]){
 
         puts("Connection accepted"); 
 
+	//creates a new thread for each new client connection
         if(pthread_create(&tid, NULL, connection_handler, (void*)&new_socket) < 0){
             perror("Failed to create thread \n"); 
             exit(EXIT_FAILURE); 
@@ -233,6 +254,7 @@ int main(int argc, char const *argv[]){
     return 0; 
 }
 
+//handles each client connection
 void *connection_handler(void *socket_destination){
     
     //Get socket descriptor 
@@ -257,6 +279,8 @@ void *connection_handler(void *socket_destination){
 
         char **command; 
     
+	// logical statements that check for get or post request and runs the appropriate function based on client instructions
+	// writes the appropriate output on the cliet side based on the instruction  
         command = get_input(client_message); 
         if(strcmp(command[0], "get") == 0){
             printf("GET request\n"); 
@@ -314,7 +338,7 @@ void *connection_handler(void *socket_destination){
     }
 
     
-     
+     // outputs on the server side if the client disconnects
     if(read_size == 0)
     {
         puts("Client disconnected");
