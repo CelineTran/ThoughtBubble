@@ -45,18 +45,20 @@ int main(int argc, char const *argv[]){
         printf("\nFailed to connect\n"); 
         return -1; 
     }
-
+    
+    //Confirmation that server and client are communicating
     puts("------------Connected to Server!!-----------\n");
-
-    char *instruction; 
 
     while( (valread = read(sock, buffer, 30000)) > 0){
         printf("%s\n", buffer);
 
         //Send Message 
         //printf("Enter a message: "); 
+        //Get input instruction
         fgets(message, 2048, stdin); 
-        send(sock, message, strlen(message), 0);
+        send(sock, message, strlen(message), 0); //send to server
+        
+        //Server side handles all the instructions
 
 
         memset(buffer, 0, 30000);
