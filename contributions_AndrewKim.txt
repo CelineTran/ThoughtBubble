@@ -1,9 +1,0 @@
-Andrew Kim
-
-For the Thought Bubble Project, I helped with initial research on how to implement the gathered 
-features we wanted in our server. Most of these features were selected from Google Drive and Github's
-functioning features. I also helped write a chunk of the report and make the presentation slides. 
-In terms of the project itself, I personally lack proficiency in the C or C++ language, so I mostly 
-helped by researching how to conceptually create a web server with a stable, multi-threaded client 
-connection and also helped by running tests to check for correct functionality and as well as checking
-for bugs. 
