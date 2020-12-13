@@ -1,0 +1,9 @@
+Kobe Lee
+
+Within this project, the bulk of my work was related to producing a high level overview of the project 
+implementation. Given that I came up with the idea within the brainstorming process, I had ideas of 
+how to move forward with the code and the various functions to ensure that the end product would be
+both managable and functional. I helped develop the terminal flow of operations in a way that was 
+understandable and easy to grasp for potential clients. Additionally, I was in charge of writing the
+introduction, analysis, and related works sections within the project report. Finally, I conducted 
+overall testing of the project to ensure that the overall use was error-free and smooth. 
