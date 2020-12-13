@@ -1,0 +1,8 @@
+Celine Tran
+
+In this project I served as project manager, making sure we set appropriate deadline and checkpoints to meet our ultimate deadline. 
+I helped brainstorm our project idea and research different approaches. 
+I set up our server/client connection framework in C so that we could build our application on top of it. I also researched 
+and test different approaches to creating the application in C. Since I was most proficient in C, I did most of the implementation, 
+integrating our application with our server as well as creating the multithread connection. 
+
